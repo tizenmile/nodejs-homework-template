@@ -1,85 +1,82 @@
 
-const fs = require('fs').promises;
-const Joi = require('joi');
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
-const schema = Joi.object({
-  id: Joi.string(),
-  name: Joi.string()
-    .alphanum()
-    .min(3)
-    .max(30)
-    .required(),
+mongoose.connect(`mongodb://homeUser:A12mongo@mongo.tizenmile.keenetic.pro/db-contacts`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-  email: Joi.string()
-    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
+const Schema = mongoose.Schema;
 
-  phone: Joi.string().required().min(3)
-})
+const contacts = new Schema({
+  name: {
+    type: String,
+    required: [true, 'Set name for contact'],
+  },
+  email: {
+    type: String,
+  },
+  phone: {
+    type: String,
+  },
+  favorite: {
+    type: Boolean,
+    default: false,
+  },
+}, {
+  versionKey: false
+});
 
+const Contact = mongoose.model('contact', contacts);
 
-const listContacts = async () => {
-  return fs.readFile('./models/contacts.json')
-    .then(data => { return { status: 'success', code: 200, data: JSON.parse(data.toString()) } })
-}
+const listContacts = async () => Contact.find();
 
-
-const getContactById = async (contactId) => {
-  return fs.readFile('./models/contacts.json').then(data => JSON.parse(data.toString()).filter(el => el.id === contactId));
-}
+const getContactById = async (contactId) => Contact.findOne({ _id: contactId });
 
 const removeContact = async (contactId) => {
-  return fs.readFile('./models/contacts.json')
-    .then(data => {
-      let array = JSON.parse(data.toString())
-      const newArray = array.filter(el => el.id != contactId);
-      if (array.length === newArray.length) {
-        return { code: 404, message: "Not found" }
-      }
-      array = [...newArray];
-      fs.writeFile('./models/contacts.json', JSON.stringify(array))
-      return { code: 200, message: "Contact deleted" }
-    }
-    )
+  try {
+    await Contact.deleteOne({ _id: contactId });
+    return { code: 200, message: "Contact deleted" }
+  } catch (error) {
+    return { code: 404, message: "Not found" }
+  }
 }
-const addContact = async ({ name, email, phone }) => {
-  return fs.readFile('./models/contacts.json')
-    .then(async data => {
-      const array = JSON.parse(data.toString())
-      const contact = {
-        id: Date.now().toString(),
-        name,
-        email,
-        phone: phone.toString(),
-      }
-      try {
-        const value = await schema.validateAsync(contact);
-        array.push(value)
-        fs.writeFile('./models/contacts.json', JSON.stringify(array))
-        return { status: 'success', code: 201, data: { contact } }
-      } catch (error) {
-        return { status: 'failed', code: 400, data: { message: error.details } }
-      }
 
-    })
+const addContact = async ({ name, email, phone, favorite }) => {
+  const contact = new Contact({
+    name,
+    email,
+    phone: phone.toString(),
+    favorite,
+  });
+  try {
+    const result = await contact.save();
+    return { status: 'success', code: 201, data: { result } }
+  } catch (error) {
+    return { status: 'failed', code: 400, data: { message: error.details } }
+  }
 }
 
 const updateContact = async (contactId, body) => {
-  return fs.readFile('./models/contacts.json')
-    .then(async data => {
-      const array = JSON.parse(data.toString())
-      const contact = array.findIndex((obj => obj.id === contactId));
-      try {
-        await schema.validateAsync(body);
-        array[contact].name = body.name;
-        array[contact].phone = body.phone;
-        array[contact].email = body.email;
-        fs.writeFile('./models/contacts.json', JSON.stringify(array))
-        return ({ status: 'success', code: 200, data: array[contact], });
-      } catch (error) {
-        return { status: 'failed', code: 400, data: { message: error.details } }
-      }
-    }
-    )
+  try {
+    await Contact.updateOne({ _id: contactId }, { name: body.name, phone: body.phone, email: body.email });
+    return ({ status: 'success', code: 200, data: body, });
+  } catch (error) {
+    return { status: 'failed', code: 400, data: { message: error.details } }
+  }
+}
+
+const updateContactFavorite = async (contactId, body) => {
+  if (body.favorite.length) {
+    return { "message": "missing field favorite" }
+  }
+  try {
+    await Contact.updateOne({ _id: contactId }, { favorite: body.favorite });
+    return ({ status: 'success', code: 200, data: body, });
+  } catch (error) {
+    return { status: 'failed', code: 400, data: { message: "missing field favorite" } }
+  }
 }
 
 module.exports = {
@@ -88,4 +85,5 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
+  updateContactFavorite,
 }
