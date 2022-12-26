@@ -1,29 +1,17 @@
-const express = require('express')
-const router = express.Router()
-const contacts = require('../../models/contacts');
+const express = require("express");
+const router = express.Router();
+const contacts = require("../../controllers/contactController");
 
-router.get('/', async (req, res, next) => {
-  res.json(await contacts.listContacts());
-});
+router.get("/", contacts.listContacts);
 
-router.get('/:contactId', async (req, res, next) => {
-  res.json(await contacts.getContactById(req.params.contactId))
-})
+router.get("/:contactId", contacts.getContactById);
 
-router.post('/', async (req, res, next) => {
-  res.status(201).json(await contacts.addContact(req.body));
-})
+router.post("/", contacts.addContact);
 
-router.delete('/:contactId', async (req, res, next) => {
-  res.status(200).json(await contacts.removeContact(req.params.contactId, req.body));
-})
+router.delete("/:contactId", contacts.removeContact);
 
-router.put('/:contactId', async (req, res, next) => {
-  res.json(await contacts.updateContact(req.params.contactId, req.body))
-})
+router.put("/:contactId", contacts.updateContact);
 
-router.patch('/:contactId/favorite', async (req, res, next) => {
-  res.json(await contacts.updateContactFavorite(req.params.contactId, req.body))
-})
+router.patch("/:contactId/favorite", contacts.updateContactFavorite);
 
-module.exports = router
+module.exports = router;
