@@ -33,15 +33,11 @@ user.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-const verifyUserSchema = Joi.object({
-  password: Joi.string().min(6).required(),
-  email: Joi.string().email().required(),
-  subscription: Joi.string().valid("starter", "business", "pro"),
-});
+
 const verifyUserSubscriptionSchema = Joi.object({
   subscription: Joi.string().valid("starter", "business", "pro"),
 });
 
 const User = mongoose.model("users", user);
 
-module.exports = { User, verifyUserSchema, verifyUserSubscriptionSchema };
+module.exports = { User, verifyUserSubscriptionSchema };

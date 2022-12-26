@@ -1,19 +1,10 @@
-const { User, verifyUserSchema } = require("../../models/usersModel");
+const { User } = require("../../models/usersModel");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  try {
-    await verifyUserSchema.validateAsync(req.body);
-  } catch (error) {
-    return res.status(400).json({
-      status: "Bad Request",
-      code: 400,
-      message: error.message,
-    });
-  }
   if (!user || !(await user.comparePassword(password))) {
     return res.status(401).json({
       status: "error",

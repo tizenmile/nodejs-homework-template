@@ -1,4 +1,4 @@
-const { User, verifyUserSchema } = require('../../models/usersModel');
+const { User } = require('../../models/usersModel');
 
 const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -12,7 +12,6 @@ const register = async (req, res, next) => {
     });
   }
   try {
-    await verifyUserSchema.validateAsync(req.body);
     const newUser = new User({ email });
     await newUser.setPassword(password);
     await newUser.save();
