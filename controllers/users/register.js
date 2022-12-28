@@ -1,4 +1,5 @@
-const { User } = require('../../models/usersModel');
+const { User } = require("../../models/usersModel");
+const gravatar = require("gravatar");
 
 const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -12,7 +13,8 @@ const register = async (req, res, next) => {
     });
   }
   try {
-    const newUser = new User({ email });
+    const avatar = gravatar.url(email, { protocol: "https" });
+    const newUser = new User({ email, avatarURL: avatar });
     await newUser.setPassword(password);
     await newUser.save();
     res.status(201).json({

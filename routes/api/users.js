@@ -7,6 +7,7 @@ const {validateUser, validateUserUserSubscription} = require("../../middleware/v
 
 router.post("/register", validateUser, userController.register);
 router.post("/login", validateUser, userController.login);
+router.patch('/avatars', auth, userController.upload.single('avatar'), userController.updateUserAvatar)
 router.post("/logout", auth, userController.logout); // auth
 router.post("/current", auth, userController.current); // auth
 router.patch("/", auth, validateUserUserSubscription, userController.updateSubscription); // auth
