@@ -12,15 +12,20 @@ const login = async (req, res, next) => {
       message: "Email or password is wrong",
     });
   }
-
+  if (!user.verify) {
+    return res.status(401).json({
+      status: "error",
+      code: 401,
+      message: "Please verify your email",
+    });
+  }
   const payload = {
     id: user.id,
-    username: user.username,
+    email: user.email,
   };
   const id = user.id;
   const token = jwt.sign(payload, process.env.SECRET, { expiresIn: "2h" });
-  await User.findByIdAndUpdate(user.id, { token });
-  await User.updateOne({ _id: id }, { token: token });
+  await User.findByIdAndUpdate(id, { token });
   res.json({
     status: "success",
     code: 200,

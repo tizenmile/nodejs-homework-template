@@ -1,5 +1,7 @@
+
 const { User } = require("../../models/usersModel");
 const gravatar = require("gravatar");
+const emailVerificationSend = require("./emailVerificationSend");
 
 const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -14,9 +16,13 @@ const register = async (req, res, next) => {
   }
   try {
     const avatar = gravatar.url(email, { protocol: "https" });
-    const newUser = new User({ email, avatarURL: avatar });
+    
+    const newUser = new User({ email, avatarURL: avatar, verificationToken: "null" });
     await newUser.setPassword(password);
     await newUser.save();
+    req.register = true
+    await emailVerificationSend(req, res);
+
     res.status(201).json({
       status: "success",
       code: 201,

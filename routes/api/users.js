@@ -6,6 +6,8 @@ const { userController } = require("../../controllers");
 const {validateUser, validateUserUserSubscription} = require("../../middleware/validation");
 
 router.post("/register", validateUser, userController.register);
+router.get("/verify/:verificationToken", userController.verifyEmail);
+router.post("/verify/", userController.emailVerificationSend);
 router.post("/login", validateUser, userController.login);
 router.patch('/avatars', auth, userController.upload.single('avatar'), userController.updateUserAvatar)
 router.post("/logout", auth, userController.logout); // auth
